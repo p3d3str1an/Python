@@ -19,7 +19,7 @@ result = readPROD(
       , [NEV]
       , [SZAMLA_NEV]
       , [SZALL_NEV]
-    FROM [ARSUNA_2020_PROD].[dbo].[IFSZ_TRF_BIZONYLAT_FEJ]
+    FROM [IFSZ_TRF_BIZONYLAT_FEJ]
     where FELDOLGOZAS_DATUMA is null and ELUTASITVA_E<>'I' and isnull(MEGJEGYZES,'') not LIKE '%H'
 	"""
 )
@@ -41,7 +41,7 @@ result = readPROD(
       , [Comments]
       , [QUEUE_ID]
       , [DOCNUM]
-    FROM [ARSUNA_2020_PROD].[dbo].[IFSZ_UK_ORDR]
+    FROM [IFSZ_UK_ORDR]
     where Transzferalva not in('I','D','T')
 	"""
 )
@@ -104,7 +104,7 @@ draftresult = readPROD(
     union all
     	SELECT
       [BIZ_AZON]
-    	FROM [ARSUNA_2020_PROD].[dbo].[IFSZ_TRF_BIZONYLAT_FEJ]
+    	FROM [IFSZ_TRF_BIZONYLAT_FEJ]
     	where  isnull(MEGJEGYZES,'') LIKE '%H'
   """
 )
@@ -133,7 +133,7 @@ if result.shape[0]>0:
 # webes rendelés el se indult
 
 result1 = readWEB(
-	r"select order_id from cscart_orders where order_id > 140000 and status<>'N' and from_unixtime(timestamp)<date_sub(now(), INTERVAL 40 MINUTE)"
+	r"select order_id from cscart_orders where order_id > 150000 and status<>'N' and from_unixtime(timestamp)<date_sub(now(), INTERVAL 40 MINUTE)"
 )['order_id'].unique()
 
 result2 = readPROD(
@@ -170,5 +170,4 @@ if result.shape[0]>0:
 #hibaüzenetek kiküldése
 
 if msg!='':
-#	notify(msg)
 	notifyover('Checks', msg)
