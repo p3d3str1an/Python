@@ -4,4 +4,7 @@
 			"path": "."
 		}
 	]
+	 "settings": {
+        "workbench.colorTheme": "Kimbie Dark"
+    }
 }

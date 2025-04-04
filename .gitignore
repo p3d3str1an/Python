@@ -1,1 +1,12 @@
 credentials.py
+cscart user create/hozzajarulas.xlsx
+cscart user create/hozzajarulas_l.xlsx
+mailstat/creds.json
+__pycache__/
+Python.code-workspace
+Python.code-workspace
+gcreds.json
+POInvoices/ois_api_client-master.zip
+POInvoices/output/bejovoszla-header.csv
+POInvoices/output/bejovoszla-lines.csv
+POInvoices/output/hianyzo_szallitok.xlsx

@@ -55,3 +55,7 @@ NAV_SIGNATURE_KEY='<your nav technical user signature key>'
 NAV_REPLACEMENT_KEY='<your nav technical user replacement key>'
 NAV_PASSWORD='<your nav technical user password>'
 NAV_USERNAME='<your nav technical user username>'
+
+KOZOSPATH='<your network path>'
+MYLOCALPATH='<your local path>'
+
