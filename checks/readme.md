@@ -1,0 +1,1 @@
+Mindenféle elakadásokra figyelmeztet (nem beolvasott rendelések, nem elküldött számlák stb.)
