@@ -5,16 +5,16 @@ import numpy as np
 import pandas as pd
 import openpyxl
 import os
+from credentials import KOZOSPATH
 
 def myexcepthook(type, value, traceback, oldhook=sys.excepthook):
     oldhook(type, value, traceback)
     input("Press RETURN. ")    # use input() in Python 3.x
 sys.excepthook = myexcepthook
 
-exportfolder = r'\\nas\Kozos\PÉNZÜGY\BEOLVASÓK\POS'
+exportfolder = KOZOSPATH+r'\PÉNZÜGY\BEOLVASÓK\POS'
 
-## ez nem kell, debugold a megfelelő menüponttal (debugikon, legördülőmenü) 
-## testfilename=r'C:\Users\p3d3str1an\OneDrive\ArsUna\vegyes\KH terminál\KH189.xlsx'
+## debugold a megfelelő menüponttal (debugikon, legördülőmenü, vagyis custom launch.json, amiben paraméter van a fájlhoz) 
 
 #argumentumnként megadható a fájl, elérési úttal (drag-and-drop is műk)
 parser = argparse.ArgumentParser('SBO számlákat párosít POS terminál jelentés-sorokhoz') 
