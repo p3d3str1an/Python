@@ -4,14 +4,13 @@ import pandas as pd
 ''' thanks to https://github.com/peterkulik/ois_api_client '''
 
 import ois_api_client as ois
-
+from ois_api_client.v3_0 import dto, deserialization
 
 from datetime import datetime, timezone, timedelta
 import sys
 import re
 import auDAOlib
 import params
-from ois_api_client.v3_0 import dto, deserialization
 import xml.etree.ElementTree as ET
 from credentials import NAV_SIGNATURE_KEY, NAV_PASSWORD, NAV_USERNAME, NAV_TAX_NUMBER
 
@@ -49,9 +48,11 @@ accpath = params.accpath
 outputHeaderPath = outputPath+r'\bejovoszla-header.csv'
 outputLinePath = outputPath+r'\bejovoszla-lines.csv'
 szallitoQRY = r"select distinct CardCode, CardName, isnull(substring(u_addid,3,8),substring(LicTradNum,3,8)) LicTradNum, LicTradNum as VATCode from ocrd where cardtype='S' and LicTradNum like 'HU%'"
-szamlaQRY = r"""select distinct isnull(isnull(numatcard,'')+isnull(substring(ocrd.u_addid,3,8),substring(ocrd.LicTradNum,3,8)),'-') id from OPCH join ocrd on ocrd.cardcode=opch.cardcode
+szamlaQRY = r"""
+				select distinct isnull(isnull(numatcard,'')+(case when ocrd.cardcode in ('posta', 'transpack', 'mol', 'kh') then substring(ocrd.u_addid,3,8) else substring(ocrd.LicTradNum,3,8) end),'-') id from OPCH join ocrd on ocrd.cardcode=opch.cardcode
 				union all
-				select distinct isnull(isnull(numatcard,'')+isnull(substring(ocrd.u_addid,3,8),substring(ocrd.LicTradNum,3,8)),'-') id from ODRF join ocrd on ocrd.cardcode=odrf.cardcode where odrf.ObjType=18"""
+				select distinct isnull(isnull(numatcard,'')+(case when ocrd.cardcode in ('posta', 'transpack', 'mol', 'kh') then substring(ocrd.u_addid,3,8) else substring(ocrd.LicTradNum,3,8) end),'-') id from ODRF join ocrd on ocrd.cardcode=odrf.cardcode where odrf.ObjType=18
+			"""
 
 defaultAcctCodes = dict(pd.read_excel(accpath).values)
 
@@ -178,7 +179,6 @@ try:
 			digest_request = digest_request_build(page)
 			digest_response = client.query_invoice_digest(digest_request)
 			digest_list += digest_response.invoice_digest_result.invoice_digest
-
 except ois.GeneralError as err:
 	general_error_response_xml = ET.fromstring(err.general_error_response)
 	gen_err: dto.GeneralErrorResponse = deserialization.deserialize_general_error_response(general_error_response_xml)
@@ -210,7 +210,8 @@ missingSuppliers = set([])
 missingSup = pd.DataFrame(columns = ['LicTradNum', 'Cardname'])
 
 for idx, invoice in enumerate(digest_list):
-	if len(dfPOInvoices[dfPOInvoices['id']==invoice.invoice_number+(invoice.supplier_group_member_tax_number or invoice.supplier_tax_number)].index)<1:		#ha nincs még a rendszerben ilyen számlaszám+adószám kombóval bizonylat
+	testid = invoice.invoice_number+invoice.supplier_tax_number
+	if len(dfPOInvoices[dfPOInvoices['id']==invoice.invoice_number+invoice.supplier_tax_number].index)<1:		#ha nincs még a rendszerben ilyen számlaszám+adószám kombóval bizonylat
 			if len(dfSuppliers[dfSuppliers['LicTradNum']==invoice.supplier_tax_number].index)>0: 															#de létezik a partner már az SBOban
 				cardcode = dfSuppliers.CardCode[dfSuppliers.LicTradNum==invoice.supplier_tax_number].iloc[0]		  										#kikeressük a partnerlistából az azonosítót
 				headersor = headerFill(idx, invoice)
