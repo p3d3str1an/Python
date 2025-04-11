@@ -4,13 +4,13 @@ from base64 import b64encode
 import requests
 import json
 from pandas import read_excel
-from credentials import ARSUNAHU_TESZT22_API_KEY, ARSUNAHU_ELES_API_KEY
+from credentials import ARSUNAHU_TESZT22_API_KEY, ARSUNAHU_ELES_API_KEY, MYLOCALPATH
 
 def query(param):
 	return baseurl+param
 
 teszt = False; #ezt állítsd true ha tesztelni szeretnél 
-listapath = r'C:\Users\p3d3str1an\OneDrive\ArsUna\Python\cscart user create\hozzajarulas.xlsx'
+listapath = MYLOCALPATH+r'\OneDrive\Python\cscart user create\hozzajarulas.xlsx' 
 
 if teszt:
 	authstring = "it@arsuna.hu:"+ARSUNAHU_TESZT22_API_KEY
@@ -27,20 +27,17 @@ for k,v in my_headers.items():
 	headerstring +=" -H '"+k+":"+v+"'"
 
 
-lista = read_excel(listapath, usecols='A:C').to_dict("records")
+lista = read_excel(listapath, usecols='A:C').to_dict("records") # columns: lastname, phone, email
 
 # userek létrehozása
 
 for listaitem in lista:
-	
 
 	createuser = listaitem | {"company_id":"1", "status":"A","user_type":"C"}
 	user = json.dumps(createuser, ensure_ascii=False).encode('utf-8')
 	param = 'users'
 	response = requests.post(query(param), headers=my_headers, data=user)
 		
-
-#	curlstring = "curl " + headerstring + "-d " + user + " -X POST " + "'" + query(param) + "'"
 
 #	 ha sikerült, akkor mehet a Törzsvásárlók közé
 	if response.status_code==201:
