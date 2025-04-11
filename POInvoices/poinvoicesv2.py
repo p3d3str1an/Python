@@ -130,7 +130,7 @@ def detail_request(szamla):
 	except Exception as err:
 		print(err)
 
-def headerFill(idx, invoice):
+def headerFill(idx, invoice, invoice_data):
 	header = {}
 	header['DocEntry'] = int(idx)
 	header['Doctype'] = 'S'
@@ -142,26 +142,26 @@ def headerFill(idx, invoice):
 	header['VatDate'] = invoice.invoice_delivery_date.strftime("%Y-%m-%d") if invoice.invoice_delivery_date else None
 	header['DocDueDate'] = invoice.payment_date.strftime("%Y-%m-%d") if invoice.payment_date else None
 	if invoice.invoice_category == dto.InvoiceCategory.SIMPLIFIED:
-		invoice_data = detail_request(invoice)
 		header['DocTotal'] = invoice_data.invoice_main.invoice.invoice_summary.summary_gross_data.invoice_gross_amount
-		if invoice_data.invoice_main.invoice.invoice_summary.summary_simplified[0].vat_rate.vat_percentage:
-			print(invoice_data.invoice_main.invoice.invoice_head.supplier_info.supplier_name+" - "+ invoice_data.invoice_main.invoice.invoice_summary.summary_simplified[0].vat_rate.vat_percentage)
 	else:
 		header['DocTotal']= invoice.invoice_net_amount_huf+invoice.invoice_vat_amount_huf
 	header['Comments'] = invoice.original_invoice_number
 	header['DocCurrency'] = invoice.currency if (invoice.currency!='HUF') else 'Ft'
 	return header
 
-def lineFill(idx, cardcode, invoice):
+def lineFill(idx, cardcode, invoice, invoice_data):
 	line = {}
 	line['Docentry'] = int(idx)
 	line['LineNum'] = 0
-	if invoice.invoice_net_amount_huf is None:
-		line['Price'] = 0
-		line['PriceAfterVAT'] = 0
-	else:
+	if invoice.invoice_net_amount_huf:
 		line['Price'] = invoice.invoice_net_amount_huf
-		line['PriceAfterVAT'] = invoice.invoice_net_amount_huf+invoice.invoice_vat_amount_huf
+		line['PriceAfterVat'] = invoice.invoice_net_amount_huf+invoice.invoice_vat_amount_huf
+	elif invoice.invoice_net_amount_huf is None and invoice.invoice_category == dto.InvoiceCategory.SIMPLIFIED:
+		line['PriceAfterVat'] = invoice_data.invoice_main.invoice.invoice_summary.summary_gross_data.invoice_gross_amount
+		line['Price'] = None
+	else:
+		line['Price'] = 0
+		line['PriceAfterVat'] = 0
 	line['AccountCode'] = str(defaultAcctCodes.get(cardcode) or '5139000')
 	return line
 
@@ -203,19 +203,21 @@ print('beolvasandó számlák listájának összeállítása')
 dfInvExportHeaderCols = pd.DataFrame(columns = ['DocEntry', 'Doctype', 'DocObjectCode', 'CardCode', 'NumAtCard', 'DocDate', 'TaxDate', 'DocDueDate', 'VatDate', 'DocTotal', 'Comments', 'DocCurrency'], dtype = 'str')
 dfInvExportHeaderRow = pd.DataFrame([['DocEntry', 'Doctype', 'DocObjectCode', 'CardCode', 'NumAtCard', 'DocDate', 'TaxDate', 'DocDueDate', 'VatDate', 'DocTotal', 'Comments', 'DocCurrency']], columns=dfInvExportHeaderCols.columns)
 dfInvExportHeader = pd.concat([dfInvExportHeaderCols, dfInvExportHeaderRow])
-dfInvExportLinesCols = pd.DataFrame(columns= ['Docentry', 'LineNum', 'AccountCode', 'Price'], dtype = 'str')
-dfInvExportLinesRow = pd.DataFrame([['Docentry', 'LineNum', 'AccountCode', 'Price']], columns=dfInvExportLinesCols.columns)
+dfInvExportLinesCols = pd.DataFrame(columns= ['Docentry', 'LineNum', 'AccountCode', 'Price', 'PriceAfterVat'], dtype = 'str')
+dfInvExportLinesRow = pd.DataFrame([['Docentry', 'LineNum', 'AccountCode', 'Price','PriceAfterVat']], columns=dfInvExportLinesCols.columns)
 dfInvExportLines = pd.concat([dfInvExportLinesCols, dfInvExportLinesRow])
 missingSuppliers = set([])
 missingSup = pd.DataFrame(columns = ['LicTradNum', 'Cardname'])
 
 for idx, invoice in enumerate(digest_list):
-	testid = invoice.invoice_number+invoice.supplier_tax_number
+	invoice_data=None
 	if len(dfPOInvoices[dfPOInvoices['id']==invoice.invoice_number+invoice.supplier_tax_number].index)<1:		#ha nincs még a rendszerben ilyen számlaszám+adószám kombóval bizonylat
-			if len(dfSuppliers[dfSuppliers['LicTradNum']==invoice.supplier_tax_number].index)>0: 															#de létezik a partner már az SBOban
-				cardcode = dfSuppliers.CardCode[dfSuppliers.LicTradNum==invoice.supplier_tax_number].iloc[0]		  										#kikeressük a partnerlistából az azonosítót
-				headersor = headerFill(idx, invoice)
-				linesor = lineFill(idx, cardcode, invoice)
+			if len(dfSuppliers[dfSuppliers['LicTradNum']==invoice.supplier_tax_number].index)>0: 				#de létezik a partner már az SBOban
+				cardcode = dfSuppliers.CardCode[dfSuppliers.LicTradNum==invoice.supplier_tax_number].iloc[0]	#kikeressük a partnerlistából az azonosítót
+				if invoice.invoice_category == dto.InvoiceCategory.SIMPLIFIED:  								# ha egyszerűsített számla, akkor lekérjük a részleteket
+					invoice_data = detail_request(invoice)
+				headersor = headerFill(idx, invoice, invoice_data)
+				linesor = lineFill(idx, cardcode, invoice, invoice_data)
 				dfInvExportHeader = pd.concat([dfInvExportHeader,pd.DataFrame([headersor], columns=headersor.keys())])
 				dfInvExportLines = pd.concat([dfInvExportLines,pd.DataFrame([linesor], columns=linesor.keys())])
 			else:
