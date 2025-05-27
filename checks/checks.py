@@ -1,4 +1,4 @@
-from auDAOlib import notifyover, readPROD, readWEB
+from auDAOlib import notifyover, readPROD, readWEB, execWEB, updatePROD
 # nem kell már a requests, csak ha a complete_trf pótlására kellene
 # import requests
 
@@ -24,6 +24,9 @@ result = readPROD(
 	"""
 )
 if result.shape[0]>0:
+	for orderid in result['BIZ_AZON']:
+		vatnumber = readWEB(fr"select pfd.value AS eu_vat from cscart_orders o left join cscart_profile_fields_data pfd on o.profile_id = pfd.object_id and pfd.object_type = 'P' and pfd.field_id = 39 where o.order_id={orderid}")['eu_vat'].values[0]
+		updatePROD(fr"update ifsz_trf_bizonylat_fej set EU_VAT='{vatnumber}', sbo_cardcode = 'WEBC', sbo_cntctcode='901' where biz_azon={orderid}", [])
 	msg+='Web: '+str(result.shape[0])
 
 
@@ -158,6 +161,11 @@ result = readPROD(
 if result.shape[0]>0:
 	msg+=chr(10) + ' Számlahiba: '+ str(result.shape[0])
 
+#complete_trf pótlása, mert az interfész nem futtatja?
+try:
+  execWEB('complete_trf')
+except Exception as e:
+  pass
 
 #complete_trf pótlása, mert az interface nem tudja megnyitni - megoldódott
 
