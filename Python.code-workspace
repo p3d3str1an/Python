@@ -2,9 +2,47 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "\\\\ars\\c$\\Python"
 		}
-	]
+	],
 	 "settings": {
         "workbench.colorTheme": "Kimbie Dark"
-    }
+	},
+	"launch": {
+		"configurations": [
+			{
+				"name": "Python: Current File",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal",
+				"cwd": "${fileDirname}",
+				"purpose": ["debug-in-terminal"],
+				"justMyCode":true
+			},
+			{
+				"name": "Python: Current File notjustmycode",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal",
+				"cwd": "${fileDirname}",
+				"purpose": ["debug-in-terminal"],
+				"justMyCode":false
+			},
+			{
+				"name": "Python: Current File args",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal",
+				"cwd": "${fileDirname}",
+				"purpose": ["debug-in-terminal"],
+				"justMyCode":true,
+				"args": ["\\\\nas\\Kozos\\PÉNZÜGY\\BEOLVASÓK\\POS\\KH098.xlsx"]
+			}
+		]
+	}
 }
