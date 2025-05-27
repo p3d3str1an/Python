@@ -5,36 +5,64 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL
 from credentials import DATABASES, PUSHOVER_USER_KEY, PUSHOVER_API_TOKEN, YAGMAIL_USER, YAGMAIL_PASSWORD
 
-def DAO(qry,db,op):
+def DAO(qry, db, op):
 	if db in DATABASES:
 		db_config = DATABASES[db]
 		if db == 'ARSUNAHU':
-			connection_url = URL.create('mysql+mysqlconnector', 
-				username=db_config['username'], password=db_config['password'], host=db_config['host'], port=db_config['port'], database=db_config['database'])
+			# MySQL
+			connection_url = URL.create(
+				'mysql+mysqlconnector',
+				username=db_config['username'],
+				password=db_config['password'],
+				host=db_config['host'],
+				port=db_config['port'],
+				database=db_config['database']
+			)
+			is_mysql = True
 		else:
-			connection_string = 'DRIVER={SQL Server};SERVER=%s;PORT=%s;DATABASE=%s;UID=%s;PWD=%s' % (
-				db_config['server'], db_config['port'], db_config['database'], db_config['username'], db_config['password']
+			# SQL Server
+			connection_string = (
+				'DRIVER={SQL Server};SERVER=%s;PORT=%s;DATABASE=%s;UID=%s;PWD=%s' % (
+					db_config['server'], db_config['port'], db_config['database'],
+					db_config['username'], db_config['password']
+				)
 			)
 			connection_url = URL.create("mssql+pyodbc", query={"odbc_connect": connection_string})
-		
+			is_mysql = False
+
 		engine = create_engine(connection_url)
-		if op == 'read':
-			with engine.begin() as conn:
-				df = pd.read_sql(qry, conn)
-			engine.dispose()
-			return df
-		elif op == 'exec':
-			with engine.begin() as conn:
-				conn.execute(text('execute dbo.' + qry))
-			engine.dispose()
-		elif op == 'upd':
-			with engine.begin() as conn:
-				try:
-					stat = text(qry[0])
-					conn.execute(stat, qry[1])
-					conn.commit()
-				except Exception as e:
-					notifyover('SQL', f"Update error: {e}")
+		try:
+			if op == 'read':
+				with engine.begin() as conn:
+					df = pd.read_sql(qry, conn)
+				return df
+
+			elif op == 'exec':
+				with engine.begin() as conn:
+					if is_mysql:
+						# Use raw connection for MySQL stored procedures
+						raw_conn = conn.connection
+						cursor = raw_conn.cursor()
+						cursor.callproc(qry)
+						cursor.close()
+						raw_conn.commit()
+					else:
+						# SQL Server stored procedure call
+						conn.execute(text(f"EXEC dbo.{qry}"))
+
+			elif op == 'upd':
+				with engine.begin() as conn:
+					try:
+						if isinstance(qry, (list, tuple)) and len(qry) == 2:
+							sql, params = qry
+						else:
+							sql, params = qry, {}
+						stmt = text(sql)
+						conn.execute(stmt, params)
+						conn.commit()
+					except Exception as e:
+						notifyover('SQL', f"Update error: {e}")
+		finally:
 			engine.dispose()
 
 
@@ -83,6 +111,13 @@ def execASSIST(proc: str):
 	Tárolt eljárás futtatás az assist adatbázison
 	"""
 	DAO(proc,'ASSIST','exec')
+
+def execWEB(proc: str):
+	"""
+	Tárolt eljárás futtatás az webes adatbázison
+	"""
+	DAO(proc,'ARSUNAHU','exec')
+
 
 def notify(mess: str):
 	"""
