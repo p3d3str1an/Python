@@ -12,11 +12,14 @@ def query(param):
 teszt = False; #ezt állítsd true ha tesztelni szeretnél 
 listapath = MYLOCALPATH+r'\OneDrive\Python\cscart user create\hozzajarulas.xlsx' 
 
+
+# FONTOS, az apiadminnak nem lehet a cscart_usergroup_links táblában bejegyzése, mert akkor nem tudja létrehozni a felhasználókat! 
+
 if teszt:
-	authstring = "it@arsuna.hu:"+ARSUNAHU_TESZT22_API_KEY
+	authstring = "apiadmin@arsuna.hu:"+ARSUNAHU_TESZT22_API_KEY
 	baseurl = 'https://teszt22.arsuna.hu/api/'
 else:
-	authstring = "it@arsuna.hu:"+ARSUNAHU_ELES_API_KEY
+	authstring = "apiadmin@arsuna.hu:"+ARSUNAHU_ELES_API_KEY
 	baseurl = 'https://arsuna.hu/api/'
 tokenstring = "basic " + b64encode(authstring.encode("utf-8")).decode("utf-8")
 my_headers = {"Authorization": tokenstring}
@@ -39,13 +42,13 @@ for listaitem in lista:
 	response = requests.post(query(param), headers=my_headers, data=user)
 		
 
-#	 ha sikerült, akkor mehet a Törzsvásárlók közé
+# ha sikerült, akkor mehet a Törzsvásárlók közé
 	if response.status_code==201:
 		my_headers['Content-type']='application/json'
 		updateuser_id=str(json.loads(response.content)['user_id'])
 		d=json.dumps({"company_id":"1","status":"A"})
 		param ='users/'+updateuser_id+'/usergroups/10'
-		responseupdate = requests.put(query(param), headers=my_headers, data=d)
+		responseupdate = requests.post(query(param), headers=my_headers, data=d)
 	else:
 		print(response.content.decode('unicode-escape').encode('utf-8').decode('utf-8'))
 		print(user)
