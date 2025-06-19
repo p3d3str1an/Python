@@ -29,7 +29,7 @@ if result.shape[0]>0:
 	for orderid in noresellers['BIZ_AZON']:
 		vatnumber = readWEB(fr"select pfd.value AS eu_vat from cscart_orders o left join cscart_profile_fields_data pfd on o.profile_id = pfd.object_id and pfd.object_type = 'P' and pfd.field_id = 39 where o.order_id={orderid}")['eu_vat'].values[0]
 		if vatnumber: 
-			updatePROD(fr"update ifsz_trf_bizonylat_fej set EU_VAT='{vatnumber}', sbo_cardcode = 'WEBC', sbo_cntctcode='901' where biz_azon={orderid}", [])
+			updatePROD(fr"update ifsz_trf_bizonylat_fej set EU_VAT='{vatnumber}', sbo_cardcode = 'WEBC', sbo_cntctcode='901', feldolgozando_e='I' where biz_azon={orderid}", [])
 	  
 
 
