@@ -1,3 +1,6 @@
+# api által írt verzió, de nem lett rá szükség
+
+
 import requests
 import json
 
