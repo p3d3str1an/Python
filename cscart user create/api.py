@@ -30,7 +30,7 @@ for k,v in my_headers.items():
 	headerstring +=" -H '"+k+":"+v+"'"
 
 
-lista = read_excel(listapath, usecols='A:C').to_dict("records") # columns: lastname, phone, email
+lista = read_excel(listapath, usecols='A:C', dtype={'phone': str}).to_dict("records") # columns: lastname, phone, email
 
 # userek létrehozása
 
