@@ -1,4 +1,4 @@
-# API teszt
+# CS Cart felhasználók létrehozása egy Excel lista alapján
 
 from base64 import b64encode
 import requests
