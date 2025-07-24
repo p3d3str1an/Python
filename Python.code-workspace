@@ -40,8 +40,8 @@
 				"console": "integratedTerminal",
 				"cwd": "${fileDirname}",
 				"purpose": ["debug-in-terminal"],
-				"justMyCode":true,
-				"args": ["\\\\nas\\Kozos\\PÉNZÜGY\\BEOLVASÓK\\POS\\KH098.xlsx"]
+				"justMyCode":false,
+				"args": ["\\\\nas\\Kozos\\PÉNZÜGY\\BEOLVASÓK\\POS\\KH130.xlsx"]
 			}
 		]
 	}
