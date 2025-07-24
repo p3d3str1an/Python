@@ -12,7 +12,7 @@ a működéshez feltételezzük, [IFSZ_TRF_BIZONYLAT_FEJ] tábla létezik, és b
 	insert into [@EMAIL_OBJECTS]
     select i.docnum, '13' objtype,i.docentry, 'TS' statusz, 'notsent' as result, case when i.cardcode like 'WEB%' then trf.EMAIL else isnull(c_szall.u_emaillista,isnull(c_szla.u_emaillista,c.E_Mail)) end email
     from oinv i 
-    left join ifsz_trf_bizonylat_fej trf on trf.biz_azon=substring(i.u_webszam,2,len(i.u_webszam)) 
+    left join ifsz_trf_bizonylat_fej trf on trf.biz_azon=substring(i.u_webszam,charindex('#',u_webszam)+1,len(i.u_webszam))
     join ocrd c on c.CardCode=i.CardCode
     left join crd1 c_szla on c_szla.cardcode=c.cardcode and c_szla.address=i.paytocode
 	left join crd1 c_szall on c_szall.CardCode=c.CardCode and c_szall.Address=i.ShipToCode
