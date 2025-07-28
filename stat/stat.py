@@ -28,7 +28,7 @@ sales3 = readPROD(sqlQuery)
 print('ytdstat queried')
 
 # webstat 
-sqlQuery = r"SELECT o.order_id, from_unixtime(o.timestamp, '%Y%m%d') date,lpad(month(from_unixtime(o.timestamp)),2,0) honap,lpad(day(from_unixtime(o.timestamp)),2,0) nap,year(from_unixtime(o.timestamp)) ev, o.total, o.shipping_ids shipping, sd.description FROM cscart_orders o join cscart_statuses s on s.status=o.status and s.type='O' join cscart_status_descriptions sd on sd.status_id=s.status_id and sd.lang_code='hu' where from_unixtime(o.timestamp)>CURDATE()- INTERVAL 2 year and o.status in ('P', 'C', 'O', 'A', 'E', 'G', 'H')"
+sqlQuery = r"SELECT o.order_id, from_unixtime(o.timestamp, '%Y%m%d') date,lpad(month(from_unixtime(o.timestamp)),2,0) honap,lpad(day(from_unixtime(o.timestamp)),2,0) nap,year(from_unixtime(o.timestamp)) ev, o.total, o.shipping_ids shipping, sd.description, case when o.shipping_ids in (12,1,13,11,6) then 'magánvásárló' when o.shipping_ids in (14,10,8,9) then 'viszonteladó' end csoport FROM cscart_orders o join cscart_statuses s on s.status=o.status and s.type='O' join cscart_status_descriptions sd on sd.status_id=s.status_id and sd.lang_code='hu' where from_unixtime(o.timestamp)>CURDATE()- INTERVAL 2 year and o.status in ('P', 'C', 'O', 'A', 'E', 'G', 'H')"
 sales4 = readWEB(sqlQuery)
 print('webstat queried') 
 ###
@@ -41,7 +41,7 @@ sqlQuery5 = '''
 				SELECT id, cikknev, sum(nettó) osszeg, sum(darab) as db, vevőcsoport, vevőcsop2 csoport, vkód 'vevőkód', ev, month(datum) honap, cast(datum as date) datum, datepart(dy,datum) ytd,
 				case when vkód in ('WEB', 'WEBC', 'bolt', 'boltszla') then 'magánvásárló' else 'viszonteladó' end vevotipus 
 				FROM AUAssist.dbo.sales 
-				where ev>'2021' 
+				where ev>'2022' 
 				and id not in ('1003', '1014', '1020', '1026', '1028', '1021')
 				and cikktulajdonság not like '%állvány%'
 				group by id, cikknev, vevőcsoport, vevőcsop2, vkód, ev, month(datum), datum
@@ -75,15 +75,15 @@ try:
 	worksheet4 = spreadsheet4.worksheet('web_sales')
 	worksheet4.clear()
 	worksheet4.update([sales4.columns.values.tolist()] + sales4.values.tolist())
-	print('webstat passed')
+	print('webstat filled')
 except Exception as error:
 	notifyover('sales4',repr(error))                                                                                                                                                 
 
 try:
 	# ez külön fájlban van, mert ritkábban frissül, mint a többi
-	#worksheet5 = spreadsheet5.worksheet('data')
-	#worksheet5.clear()
-	#worksheet5.update([sales5.columns.values.tolist()] + sales5.values.tolist())
+#	worksheet5 = spreadsheet5.worksheet('data')
+#	worksheet5.clear()
+#	worksheet5.update([sales5.columns.values.tolist()] + sales5.values.tolist())
 	print('fullitemstat.data filled')
 except Exception as error:
 	notifyover('fullitemstat',repr(error))
