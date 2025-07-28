@@ -49,6 +49,8 @@ for listaitem in lista:
 		d=json.dumps({"company_id":"1","status":"A"})
 		param ='users/'+updateuser_id+'/usergroups/10'
 		responseupdate = requests.post(query(param), headers=my_headers, data=d)
+		print(user['email'], "hozzáadva")
 	else:
-		print(response.content.decode('unicode-escape').encode('utf-8').decode('utf-8'))
-		print(user)
+#		print(response.content.decode('unicode-escape').encode('utf-8').decode('utf-8'))
+		print(response.json()['message'])
+		print(createuser['email'], "nem sikerült hozzáadni a Törzsvásárlókhoz")
