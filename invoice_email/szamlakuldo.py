@@ -7,51 +7,13 @@ from email import encoders
 from auDAOlib import readPROD as readSQL, notifyover, updatePROD as updateSQL
 from unidecode import unidecode
 from credentials import ARSUNA_EMAIL_USER, ARSUNA_EMAIL_PASSWORD
+import yagmail
 
 felhasznalo = ARSUNA_EMAIL_USER
 jelszo = ARSUNA_EMAIL_PASSWORD
 #jelszo ='rossz'
 
-# Function to authenticate with Gmail
-def authenticate_gmail():
-	# Gmail authentication
-	smtp_server = "smtp.gmail.com"
-	port = 587  # For starttls
-	sender_email = felhasznalo  # Enter your address
-	password = jelszo # Enter your password
-	try:
-		context = ssl.create_default_context()
-		server = smtplib.SMTP(smtp_server, port)
-		server.starttls(context=context)
-		server.login(sender_email, password)
-		return server, ''
-	except smtplib.SMTPException as e:
-		return server, f"Hiba: {e}"
-
-
-def send_gmail(server, felhasznalo, cimzett, text):
-	sanitized_error=''
-	try:
-		server_response = server.sendmail(felhasznalo, cimzett, text)
-		sanitized_error=server_response
-	except smtplib.SMTPRecipientsRefused as e:
-		sanitized_error = "All recipients were refused."
-	except smtplib.SMTPSenderRefused as e:
-		sanitized_error = f"Sender address refused: {e.smtp_code} - {e.smtp_error.decode()}"
-	except smtplib.SMTPDataError as e:
-		sanitized_error = f"SMTP data error: {e.smtp_code} - {e.smtp_error.decode()}"
-	except smtplib.SMTPException as e:
-		sanitized_error = "SMTP error occurred. Check server and credentials."
-	except Exception as e:
-		sanitized_error = "Unexpected error occurred during email sending."
-	return sanitized_error
-
-
 def main():
-	server, hiba = authenticate_gmail()
-	if hiba: 
-		notifyover('Email',hiba)
-		return
 	kuldendoQry = 	'''
 					select code, name, o.u_email email, i.CardName nev, iif(isnull(a.absentry,1)=1, null, concat(a.trgtPath,'\\',a.filename,'.pdf')) filename
 					from [@EMAIL_OBJECTS] o
@@ -62,6 +24,8 @@ def main():
 	kuldendok = readSQL(kuldendoQry)
 	updateQry = '''update [@email_objects] set u_status = :status, u_result = :result where code = :code'''
 
+	yag = yagmail.SMTP(user=ARSUNA_EMAIL_USER, password=ARSUNA_EMAIL_PASSWORD)
+
 	for index, row in kuldendok.iterrows():
 		docnum = row['name']
 		filepath = row['filename']
@@ -71,6 +35,14 @@ def main():
 		try:
 			file = unidecode(os.path.basename(filepath))
 			email_list = email.strip().split(',')
+
+
+
+
+
+
+
+
 			msg = MIMEMultipart()
 			msg['From'] = felhasznalo
 			msg['To'] = ', '.join(email_list)
