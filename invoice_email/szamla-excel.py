@@ -1,4 +1,4 @@
-# Invoice Email Exporter vibecoded with Gemini
+# Invoice Excel Exporter and Mailer vibecoded with Gemini
 
 import pandas as pd
 import yagmail
@@ -22,7 +22,8 @@ def export_invoice_to_excel_and_email(invoice_number, recipient_email):
         t1.SubCatNum [partner_cikkszám], 
         T1.CodeBars [vonalkód], 
         T1.Quantity [db], 
-        T1.Price [nettó ár]
+        T1.Price [nettó ár],
+		T1.LineTotal [összesen]
     FROM OINV T0 
     INNER JOIN INV1 T1 ON T0.DocEntry = T1.DocEntry
     WHERE T0.DocNum = '{invoice_number}'
@@ -64,7 +65,7 @@ def export_invoice_to_excel_and_email(invoice_number, recipient_email):
             ) + 2  # Add a little padding
             
             # The column name for price is '[nettó ár]' from your SQL query
-            if col == 'nettó ár':
+            if col == 'nettó ár' or col == 'összesen':
                 # Apply both width and currency format to the 'nettó ár' column (F)
                 worksheet.set_column(idx, idx, max_len, currency_format)
             else:
@@ -81,17 +82,17 @@ def export_invoice_to_excel_and_email(invoice_number, recipient_email):
         subject = f"A {invoice_number} számla tételei"
         body = f"""<h3>Tisztelt Címzett!</h3><p>Köszönjük hogy minket választott!<br>Mellékelten küldjük a <strong>{invoice_number}</strong> számú számlájának tételeit excel formátumban.</p><p>Ez egy automata üzenet, kérem ha észrevétele van, a web@arsuna.hu címen jelezze!</p><p>Üdvözlettel,<br>Ars Una Studio<p>"""
         yag.send(
-            to=recipient_email,
+            to=recipient_email.strip().split(','),
             subject=subject,
             contents=body,
             attachments=excel_filename
         )
         print(f"Email with invoice data sent to {recipient_email}")
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"Error sending email: {repr(e)}")
 
 if __name__ == "__main__":
     # Example usage:
     # export_invoice_to_excel_and_email("2024000123", "test@example.com")
-    export_invoice_to_excel_and_email("4012039", "it@arsuna.hu")
+    export_invoice_to_excel_and_email("5109584", "it@arsuna.hu,it+teszt@arsuna.hu")
     pass
