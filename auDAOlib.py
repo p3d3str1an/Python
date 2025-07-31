@@ -3,6 +3,8 @@ from pushover import Client
 import yagmail
 from sqlalchemy import create_engine, text, URL
 from credentials import DATABASES, PUSHOVER_USER_KEY, PUSHOVER_API_TOKEN, YAGMAIL_USER, YAGMAIL_PASSWORD
+import logging, sys
+
 
 def DAO(qry, db, op):
 	"""
@@ -199,3 +201,36 @@ def notifymail(addr='it@arsuna.hu', subj='Figyelmeztetés', mess='Kitöltetlen �
 		yag.send(to=addr, subject=subj, contents=mess)
 	except:
 		print('yagmail hiba')
+
+
+def setup_logging(log_filename='app.log', level=logging.INFO, place=2): 
+	"""
+	Configures the root logger to log to a file and the console.
+	This is an all-in-one setup function.
+	place = 0 for file, 1 for console, 2 for both
+	"""
+	# Get the root logger
+	logger = logging.getLogger()
+	logger.setLevel(level)
+
+	# Prevent duplicate handlers by clearing any existing ones
+	if logger.hasHandlers():
+		logger.handlers.clear()
+
+	# Create the shared formatter
+	formatter = logging.Formatter(
+		'%(asctime)s - %(levelname)s - %(message)s',
+		datefmt='%Y-%m-%d %H:%M:%S'
+	)
+
+	if place == 0 or place == 2:
+		# Create and add the file handler
+		file_handler = logging.FileHandler(log_filename)
+		file_handler.setFormatter(formatter)
+		logger.addHandler(file_handler)
+
+	if place == 1 or place == 2:
+		# Create and add the console handler
+		console_handler = logging.StreamHandler(sys.stdout)
+		console_handler.setFormatter(formatter)
+		logger.addHandler(console_handler)
