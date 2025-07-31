@@ -16,3 +16,4 @@ cscart usergroup settings/cikklista.xlsx
 Python.code-workspace
 stat/bigquery-key.json
 invoice_email/szamlakuldo.py
+szamlakuldo.log
