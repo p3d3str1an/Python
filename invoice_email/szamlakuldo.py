@@ -12,14 +12,8 @@ from credentials import ARSUNA_EMAIL_USER, ARSUNA_EMAIL_PASSWORD, KOZOSPATH
 import pandas as pd
 import logging
 
-setup_logging(log_filename='szamlakuldo.log',place=1)
-
-felhasznalo = ARSUNA_EMAIL_USER
-jelszo = ARSUNA_EMAIL_PASSWORD
-#jelszo ='rossz'
-
 # Function to authenticate with Gmail
-def authenticate_gmail():
+def authenticate_gmail(felhasznalo, jelszo):
 	# Gmail authentication
 	smtp_server = "smtp.gmail.com"
 	port = 587  # For starttls
@@ -114,18 +108,25 @@ def export_invoice_to_excel(invoice_number):
 	return excel_filename
 
 def main():
-	server, hiba = authenticate_gmail()
+	setup_logging(log_filename='szamlakuldo.log',place=1)
+	felhasznalo = ARSUNA_EMAIL_USER
+	jelszo = ARSUNA_EMAIL_PASSWORD
+	#jelszo ='rossz'
+	server, hiba = authenticate_gmail(felhasznalo, jelszo)
 	if hiba: 
 		notifyover('Email',hiba)
 		logging.error(hiba)
 		return
-	kuldendoQry = 	'''
+	exceltrue = """
+			  '134011361','134011623','134011469'
+			  """
+	kuldendoQry = f'''
 					select code, name, o.u_email email, i.CardName nev, iif(isnull(a.absentry,1)=1, null, concat(a.trgtPath,'\\',a.filename,'.pdf')) filename, 
-					case when i.cardcode in ('134011361','134011623','134011469') then 'Y' else 'N' end excel
+					case when i.cardcode in ({exceltrue}) then 'Y' else 'N' end excel
 					from [@EMAIL_OBJECTS] o
 					join oinv i on i.docentry=o.U_docentry and o.U_objtype=13
 					left join atc1 a on a.AbsEntry=i.AtcEntry and a.filename like concat('%',name,'%')
-					where o.U_status='TS' and i.series not in (551,539, 540, 553)
+					where o.U_status='TT' and i.series not in (551,539, 540, 553)
 					'''
 	kuldendok = readSQL(kuldendoQry)
 	updateQry = '''update [@email_objects] set u_status = :status, u_result = :result where code = :code'''
