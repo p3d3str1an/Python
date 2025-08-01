@@ -5,6 +5,10 @@ import requests
 import json
 from pandas import read_excel
 from credentials import ARSUNAHU_TESZT22_API_KEY, ARSUNAHU_ELES_API_KEY, MYLOCALPATH
+from auDAOlib import setup_logging
+import logging
+
+setup_logging(log_filename='cscart_user_create.log', place=2)
 
 def query(param):
 	return baseurl+param
@@ -33,8 +37,9 @@ for k,v in my_headers.items():
 lista = read_excel(listapath, usecols='A:C', dtype={'phone': str}).to_dict("records") # columns: lastname, phone, email
 
 # userek létrehozása
+list_length = len(lista)
 
-for listaitem in lista:
+for index, listaitem in enumerate(lista):
 
 	createuser = listaitem | {"company_id":"1", "status":"A","user_type":"C"}
 	user = json.dumps(createuser, ensure_ascii=False).encode('utf-8')
@@ -49,8 +54,7 @@ for listaitem in lista:
 		d=json.dumps({"company_id":"1","status":"A"})
 		param ='users/'+updateuser_id+'/usergroups/10'
 		responseupdate = requests.post(query(param), headers=my_headers, data=d)
-		print(user['email'], "hozzáadva")
+		logging.info(f"{index + 1}/{list_length}: " + createuser['email'] + " hozzáadva")
 	else:
-#		print(response.content.decode('unicode-escape').encode('utf-8').decode('utf-8'))
-		print(response.json()['message'])
-		print(createuser['email'], "nem sikerült hozzáadni a Törzsvásárlókhoz")
+		logging.error(response.json()['message'])
+		logging.error(f"{index + 1}/{list_length}: "+ createuser['email'] + " nem sikerült létrehozni a felhasználót")
