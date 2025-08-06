@@ -1,6 +1,9 @@
 import gspread
 import os
 from oauth2client.service_account import ServiceAccountCredentials
+from google.cloud import bigquery
+from google.oauth2 import service_account
+from credentials import BIGQUERY_PROJECT_ID, BIGQUERY_DATASET_ID, GOOGLE_APPLICATION_CREDENTIALS_FILE
 from auDAOlib import notifyover, readPROD, readWEB
 
 scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
@@ -11,6 +14,27 @@ spreadsheet = client.open("stat")
 spreadsheet2 = client.open("fullstat")
 spreadsheet4 = client.open("webstat")
 spreadsheet5 = client.open("fullitemstat")
+
+
+credentials = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS_FILE)
+client = bigquery.Client(credentials=credentials)
+job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
+
+
+def bigquery_load(table, data):
+	table_id = BIGQUERY_PROJECT_ID + '.' + BIGQUERY_DATASET_ID + f'.{table}'
+
+	try:
+		job= client.load_table_from_dataframe(
+		data, table_id, job_config=job_config
+	)
+		job.result()  # Wait for the job to complete.
+		print(f"Loaded {job.output_rows} rows into {table_id}.")
+	except Exception as error:
+		notifyover('webstat',repr(error))
+
+bigquery_load(table='webshop_data', )
+
 
 # datapython
 sqlQuery = r"SELECT sum(nettó) osszeg, vevőcsoport, vevőcsop2 csoport, vkód 'vevőkód', vnev, ev, month(datum) honap FROM AUAssist.dbo.sales where ev>='2021' group by vevőcsoport, vevőcsop2, vkód, vnev, ev, month(datum)"
@@ -56,7 +80,7 @@ try:
 	worksheet2.update([sales2.columns.values.tolist()] + sales2.values.tolist())
 	print('fullstat filled')
 except Exception as error:
-	notifyover('fullstat',repr(error))     
+	notifyover('fullstat',repr(error))	 
 try:
 	worksheet = spreadsheet.worksheet('datapython')
 	worksheet.clear()
@@ -70,14 +94,14 @@ try:
 	worksheet3.update([sales3.columns.values.tolist()] + sales3.values.tolist())
 	print('stat.ytdstat filled')
 except Exception as error:
-	notifyover('ytdstat',repr(error))     
+	notifyover('ytdstat',repr(error))	 
 try:
 	worksheet4 = spreadsheet4.worksheet('web_sales')
 	worksheet4.clear()
 	worksheet4.update([sales4.columns.values.tolist()] + sales4.values.tolist())
 	print('webstat filled')
 except Exception as error:
-	notifyover('sales4',repr(error))                                                                                                                                                 
+	notifyover('sales4',repr(error))																																				 
 
 try:
 	# ez külön fájlban van, mert ritkábban frissül, mint a többi
