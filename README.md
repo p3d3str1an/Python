@@ -18,7 +18,7 @@ orderform: képekkel feltöltött előrendelő excel export
 
 POS data import: KH-s banki terminál adminfelületéről exportált tranzakciólista SBO számlákhoz párosítása
 
-stat: sima SQL -> Google Sheets exportok, amiből utána LookerStudioban készül grafikon
+stat: sima SQL -> Google Sheets exportok, amiből utána LookerStudioban készül grafikon (folyamatban a BigQuery-re való átállás)
 
 vegyes: kisebb lazyscriptek
 
