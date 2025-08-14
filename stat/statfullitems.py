@@ -1,13 +1,16 @@
-import gspread
-import os
+from google.cloud import bigquery
+from google.oauth2 import service_account
 from oauth2client.service_account import ServiceAccountCredentials
-from auDAOlib import notifyover, readPROD
+from auDAOlib import notifyover, readPROD, setup_logging
+import logging
+from credentials import BIGQUERY_PROJECT_ID, BIGQUERY_DATASET_ID, GOOGLE_APPLICATION_CREDENTIALS_FILE
 
-scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
-currdir = os.getcwd()
-creds = ServiceAccountCredentials.from_json_keyfile_name(currdir+r"\gcreds.json", scope)
-client = gspread.authorize(creds)
-spreadsheet5 = client.open("fullitemstat")
+setup_logging(log_filename='fullitemstat.log',place=1)
+credentials = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS_FILE)
+client = bigquery.Client(credentials=credentials)
+job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
+
+
 
 # fullitemstat
 sqlQuery5 = '''
@@ -20,13 +23,19 @@ sqlQuery5 = '''
 				group by id, cikknev, vevőcsoport, vevőcsop2, vkód, ev, month(datum), datum
 				'''
 sales5 = readPROD(sqlQuery5)
-print('fullitemstat queried')
+logging.info('fullitemstat queried')
 
-
-try:
-	worksheet5 = spreadsheet5.worksheet('data')
-	worksheet5.clear()
-	worksheet5.update([sales5.columns.values.tolist()] + sales5.values.tolist())
-	print('fullitemstat.data filled')
-except Exception as error:
-	notifyover('fullitemstat',repr(error))          
+if sales5.empty:
+	notifyover('fullitemstat', 'No data found for fullitemstat.')
+	logging.warning("No data found for fullitemstat. Skipping upload.")
+else:
+	try:
+		table_id = BIGQUERY_PROJECT_ID + '.' + BIGQUERY_DATASET_ID + f'.fullitemstat'
+		job = client.load_table_from_dataframe(
+			sales5, table_id, job_config=job_config
+		)
+		job.result()  # Wait for the job to complete.
+		logging.info(f"Loaded {job.output_rows} rows into {table_id}.")
+	except Exception as error:	
+		notifyover('fullitemstat', repr(error))
+		logging.error(f"Failed to load data into {table_id}: {error}")	
