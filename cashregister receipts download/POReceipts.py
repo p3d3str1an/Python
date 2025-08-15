@@ -11,7 +11,7 @@ from credentials import NAV_SIGNATURE_KEY, NAV_PASSWORD, NAV_USERNAME, NAV_TAX_N
 # --- API KONFIGURÁCIÓ ---
 # Alapértelmezetten a teszt környezet van beállítva.
 # Éles használathoz cseréld ki az URL-t az éles végpontra.
-API_URL = "https://api-test.onlineszamla.nav.gov.hu/ptrfile/query"
+API_URL = "https://api-onlinepenztargep.nav.gov.hu/queryCashRegisterFile/v1/queryCashRegisterStatus"
 
 # A kliens szoftver adatai, ezeket tetszőlegesen módosíthatod.
 SOFTWARE_ID = "HU10772335AU-00003"
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     
     try:
         print(f"Kérés küldése a(z) {API_URL} végpontra...")
-        response = requests.post(API_URL, data=xml_payload.encode('utf-8'), headers=headers, timeout=30)
+        response = requests.post(API_URL, data=xml_payload.encode('utf-8'), timeout=30)
         
         print(f"Válasz érkezett. HTTP státuszkód: {response.status_code}")
         
