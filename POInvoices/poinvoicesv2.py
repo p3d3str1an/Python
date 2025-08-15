@@ -1,7 +1,7 @@
 import pyodbc
 import pandas as pd
 
-''' thanks to https://github.com/peterkulik/ois_api_client '''
+# thanks to https://github.com/peterkulik/ois_api_client 
 
 import ois_api_client as ois
 from ois_api_client.v3_0 import dto, deserialization
