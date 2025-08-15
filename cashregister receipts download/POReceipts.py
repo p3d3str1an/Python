@@ -1,4 +1,5 @@
-# fully vibe coded with Gemini
+# fully vibe coded with Gemini - but not working yet
+# This script is designed to query cash register logs from the NAV online system.
 
 import requests
 import hashlib
