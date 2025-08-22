@@ -34,7 +34,7 @@ else:
 		job = client.load_table_from_dataframe(
 			sales5, table_id, job_config=job_config
 		)
-		job.result()  # Wait for the job to complete.
+		job.result(timeout=300)  # Wait for the job to complete.
 		logging.info(f"Loaded {job.output_rows} rows into {table_id}.")
 	except Exception as error:	
 		notifyover('fullitemstat', repr(error))
