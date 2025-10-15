@@ -28,7 +28,7 @@ notsentquery = """
 	where c.GroupCode = '102' 
 	and not exists (select oalr.code from oalr join aob1 on aob1.AlertCode=oalr.code where oalr.attachment like '%'+cast(i.docnum as varchar)+'%' and aob1.Confirmed2='Y')
 	and i.DocDate>'2025-01-01'
-	and i.cardcode not in ('134011467', 'partnerkedv')
+	and i.cardcode not in ('134011467', 'partnerkedv', '134011469', '14490008', '7340170', '13400761', '134009621', '134011656')
 	and i.Series not in ('538')
 	and i.docstatus='O'
 	and i.docnum not in ('4005789','4005245','4005810')
@@ -40,7 +40,7 @@ notsentquery = """
 	where c.GroupCode = '102' 
 	and not exists (select oalr.code from oalr join aob1 on aob1.AlertCode=oalr.code where oalr.attachment like '%'+cast(i.docnum as varchar)+'%' and aob1.Confirmed2='Y')
 	and i.DocDate>'2025-01-01'
-	and i.cardcode not in ('134011467', 'partnerkedv')
+	and i.cardcode not in ('134011467', 'partnerkedv', '134011469', '14490008', '7340170', '13400761', '134009621', '134011656')
 	and i.Series not in ('538')
 """
 notsentlist = readPROD(notsentquery)
