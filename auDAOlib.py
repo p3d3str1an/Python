@@ -189,8 +189,8 @@ def notifyover(source, mess):
 	try:
 		pushclient = Client(PUSHOVER_USER_KEY, api_token=PUSHOVER_API_TOKEN)
 		pushclient.send_message(mess, title=source)
-	except:
-		print('Pushover hiba')
+	except Exception as e:
+		print(f'Pushover hiba: {e}')
 
 def notifymail(addr='it@arsuna.hu', subj='Figyelmeztetés', mess='Kitöltetlen üzenettartalom'):
 	"""
