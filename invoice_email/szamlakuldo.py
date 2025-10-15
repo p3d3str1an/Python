@@ -118,7 +118,7 @@ def main():
 		logging.error(hiba)
 		return
 	exceltrue = """
-			  '134011361','134011623','134011469'
+			  '134011361','134011623','134011469','134011617','7100105'
 			  """
 	kuldendoQry = f'''
 					select code, name, o.u_email email, i.CardName nev, iif(isnull(a.absentry,1)=1, null, concat(a.trgtPath,'\\',a.filename,'.pdf')) filename, 
