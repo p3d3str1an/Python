@@ -60,7 +60,7 @@ for sourcefile in sourcefiles:
 
 	#ha a KH-s listát a banki referencia nevén mentjük el, egyből azt teszi a ref-be és a fájlnévbe is
 	reference = filename.replace('.xml', '')
-	exportfile = exportfolder+'\\'+reference+'-teszt_posexport.xlsx'
+	exportfile = exportfolder+'\\'+reference+'-teszt_posexport'
 
 	#több napot is átölelhet a KH-s lista, főleg ha szombaton is nyitva voltunk és hétfőn töltjük le
 	currdatelist=poslist['date'].unique()
@@ -94,29 +94,17 @@ for sourcefile in sourcefiles:
 				explines.append({'parentkey':index, 'linenum':'', 'docentry':document, 'SumApplied':sum})
 				#az első sorban benne lesz az utalási dátum és referencia, az összes többi dátum és ref mező arra az egy-egy cellára hivatkozik
 				if index==0:
-					expheader.append({'DocNum':index,'DocDate':statement_date, 'CardCode':ccode,'TransferAccount':3842000,'TransferSum':sum, 'TransferDate':'=$B$3', 'TransferReference':reference,'Reference2':row.rid, 'CounterReference':'=$G$3', 'JournalRemarks':'Bejövő fizetés -POS','TaxDate':'=$B$3', 'DocObjectCode':24})
+					expheader.append({'DocNum':index,'DocDate':statement_date, 'CardCode':ccode,'TransferAccount':3842000,'TransferSum':sum, 'TransferDate':statement_date, 'TransferReference':reference,'Reference2':row.rid, 'CounterReference':reference, 'JournalRemarks':'Bejövő fizetés -POS','TaxDate':statement_date, 'DocObjectCode':24})
 				else:
-					expheader.append({'DocNum':index,'DocDate':'=$B$3', 'CardCode':ccode,'TransferAccount':3842000,'TransferSum':sum, 'TransferDate':'=$B$3', 'TransferReference':'=$G$3','Reference2':row.rid, 'CounterReference':'=$G$3', 'JournalRemarks':'Bejövő fizetés -POS','TaxDate':'=$B$3', 'DocObjectCode':24})
+					expheader.append({'DocNum':index,'DocDate':statement_date, 'CardCode':ccode,'TransferAccount':3842000,'TransferSum':sum, 'TransferDate':statement_date, 'TransferReference':reference,'Reference2':row.rid, 'CounterReference':reference, 'JournalRemarks':'Bejövő fizetés -POS','TaxDate':statement_date, 'DocObjectCode':24})
 			else:
 				explines.append({'parentkey':index, 'linenum':'', 'docentry':'=INDEX(szamlak!A:A,MATCH(E%s,szamlak!B:B))' % str(index+3), 'SumApplied':sum})
 				if index==0:
-					expheader.append({'DocNum':index,'DocDate':statement_date, 'CardCode':'=INDEX(szamlak!E:E,MATCH(INDEX(lines!C:C,MATCH(A%s,lines!A:A,0)),szamlak!A:A,0))' % str(index+3),'TransferAccount':3842000,'TransferSum':sum, 'TransferDate':'=$B$3', 'TransferReference':reference,'Reference2':row.rid, 'CounterReference':'=$G$3', 'JournalRemarks':'Bejövő fizetés -POS','TaxDate':'=$B$3', 'DocObjectCode':24})
+					expheader.append({'DocNum':index,'DocDate':statement_date, 'CardCode':'=INDEX(szamlak!E:E,MATCH(INDEX(lines!C:C,MATCH(A%s,lines!A:A,0)),szamlak!A:A,0))' % str(index+3),'TransferAccount':3842000,'TransferSum':sum, 'TransferDate':statement_date, 'TransferReference':reference,'Reference2':row.rid, 'CounterReference':reference, 'JournalRemarks':'Bejövő fizetés -POS','TaxDate':statement_date, 'DocObjectCode':24})
 				else:
-					expheader.append({'DocNum':index,'DocDate':'=$B$3', 'CardCode':'=INDEX(szamlak!E:E,MATCH(INDEX(lines!C:C,MATCH(A%s,lines!A:A,0)),szamlak!A:A,0))' % str(index+3),'TransferAccount':3842000,'TransferSum':sum, 'TransferDate':'=$B$3', 'TransferReference':'=$G$3','Reference2':row.rid, 'CounterReference':'=$G$3', 'JournalRemarks':'Bejövő fizetés -POS','TaxDate':'=$B$3', 'DocObjectCode':24})
+					expheader.append({'DocNum':index,'DocDate':statement_date, 'CardCode':'=INDEX(szamlak!E:E,MATCH(INDEX(lines!C:C,MATCH(A%s,lines!A:A,0)),szamlak!A:A,0))' % str(index+3),'TransferAccount':3842000,'TransferSum':sum, 'TransferDate':statement_date, 'TransferReference':reference,'Reference2':row.rid, 'CounterReference':reference, 'JournalRemarks':'Bejövő fizetés -POS','TaxDate':statement_date, 'DocObjectCode':24})
 			index+=1 #csúnya antipythonista manuális index inkrementálás
 
-	with pd.ExcelWriter(exportfile) as writer: 
-		pd.DataFrame(expheader).to_excel(writer,sheet_name='header',index=False)
-		pd.DataFrame(explines).to_excel(writer,sheet_name='lines',index=False)
-		fullszamlalist.to_excel(writer, sheet_name='szamlak',index=False)
-		poslist.sort_values(by='time').to_excel(writer, sheet_name='poslist',index=False)
 
-
-	#cellaformátum és színezés (textnek kell lennie a dátumnak, vagy szénné hullik az egész a módosításakor)
-
-	wb = openpyxl.load_workbook(filename=exportfile)
-	ws = wb['header']
-	ws['B3'].number_format=openpyxl.styles.numbers.FORMAT_TEXT
-	ws['B3'].fill = openpyxl.styles.PatternFill(start_color='C4D79B', end_color='C4D79B',fill_type = "solid")
-	ws['G3'].fill = openpyxl.styles.PatternFill(start_color='C4D79B', end_color='C4D79B',fill_type = "solid")
-	wb.save(filename=exportfile)
+	pd.DataFrame(expheader).to_csv(exportfile+'-header.csv', index=False, sep=';')
+	pd.DataFrame(explines).to_csv(exportfile+'-lines.csv', index=False, sep=';')
