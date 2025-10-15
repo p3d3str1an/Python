@@ -29,9 +29,6 @@ tokenstring = "basic " + b64encode(authstring.encode("utf-8")).decode("utf-8")
 my_headers = {"Authorization": tokenstring}
 my_headers['Content-type']='application/json; charset=utf-8'
 my_headers['User-Agent'] ='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
-headerstring = ''
-for k,v in my_headers.items():
-	headerstring +=" -H '"+k+":"+v+"'"
 
 
 lista = read_excel(listapath, usecols='A:C', dtype={'phone': str}).to_dict("records") # columns: lastname, phone, email
@@ -51,10 +48,10 @@ for index, listaitem in enumerate(lista):
 	if response.status_code==201:
 		my_headers['Content-type']='application/json'
 		updateuser_id=str(json.loads(response.content)['user_id'])
-		d=json.dumps({"company_id":"1","status":"A"})
+		d=json.dumps({"status":"A"})
 		param ='users/'+updateuser_id+'/usergroups/10'
-		responseupdate = requests.post(query(param), headers=my_headers, data=d)
-		logging.info(f"{index + 1}/{list_length}: " + createuser['email'] + " hozzáadva")
+		responseupdate = requests.put(query(param), headers=my_headers, data=d)
+		logging.info(f"{index + 1}/{list_length}: " + createuser['email'] + " hozzáadva" + f" - Válasz: {responseupdate.json()['message']}")
 	else:
 		logging.error(response.json()['message'])
 		logging.error(f"{index + 1}/{list_length}: "+ createuser['email'] + " nem sikerült létrehozni a felhasználót")
