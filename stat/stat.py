@@ -1,20 +1,11 @@
-import gspread
-import os
 from oauth2client.service_account import ServiceAccountCredentials
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from credentials import BIGQUERY_PROJECT_ID, BIGQUERY_DATASET_ID, GOOGLE_APPLICATION_CREDENTIALS_FILE
-from auDAOlib import notifyover, readPROD, readWEB
+from auDAOlib import notifyover, readPROD, readWEB, setup_logging
+import logging
 
-scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
-currdir = os.getcwd()
-creds = ServiceAccountCredentials.from_json_keyfile_name(currdir+r"\gcreds.json", scope) # json file with credentials
-client = gspread.authorize(creds)
-spreadsheet = client.open("stat")
-spreadsheet2 = client.open("fullstat")
-spreadsheet4 = client.open("webstat")
-spreadsheet5 = client.open("fullitemstat")
-
+setup_logging(log_filename='stat.log',place=0)
 
 credentials = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS_FILE)
 client = bigquery.Client(credentials=credentials)
@@ -29,9 +20,10 @@ def bigquery_load(table, data):
 		data, table_id, job_config=job_config
 	)
 		job.result()  # Wait for the job to complete.
-		print(f"Loaded {job.output_rows} rows into {table_id}.")
+		logging.info(f"Loaded {job.output_rows} rows into {table_id}.")
 	except Exception as error:
 		notifyover('webstat',repr(error))
+		logging.error(f"Failed to load data into {table_id}: {error}")
 
 bigquery_load(table='webshop_data', )
 
@@ -40,6 +32,7 @@ bigquery_load(table='webshop_data', )
 sqlQuery = r"SELECT sum(nettó) osszeg, vevőcsoport, vevőcsop2 csoport, vkód 'vevőkód', vnev, ev, month(datum) honap FROM AUAssist.dbo.sales where ev>='2021' group by vevőcsoport, vevőcsop2, vkód, vnev, ev, month(datum)"
 sales = readPROD(sqlQuery)
 print('datapython queried')
+logging.info('datapython queried')
 
 # fullstat
 sqlQuery = r"SELECT sum(nettó) osszeg, vevőcsoport, vevőcsop2 csoport, vkód 'vevőkód', ev, month(datum) honap, cast(datum as date) datum FROM AUAssist.dbo.sales where ev>='2021' group by vevőcsoport, vevőcsop2, vkód, ev, month(datum), datum"
@@ -111,3 +104,4 @@ try:
 	print('fullitemstat.data filled')
 except Exception as error:
 	notifyover('fullitemstat',repr(error))
+
