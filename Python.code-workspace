@@ -41,7 +41,7 @@
 				"cwd": "${fileDirname}",
 				"purpose": ["debug-in-terminal"],
 				"justMyCode":false,
-				"args": ["\\\\nas\\Kozos\\PÉNZÜGY\\BEOLVASÓK\\POS\\KH130.xlsx"]
+				"args": ["\\\\nas\\Kozos\\PÉNZÜGY\\BEOLVASÓK\\POS\\KH211.xml"]
 			}
 		]
 	}
