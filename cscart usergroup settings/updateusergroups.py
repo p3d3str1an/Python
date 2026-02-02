@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
 	# AU usergroup IDs: 8=PIREX, 12=PATRIA, 14=SPAR, 15=EXPORT_MIRA, 16=Export PetrDanek, 17=Export egyéb
 
-	USERGROUP = 15
+	USERGROUP = 8  # Set the usergroup ID to add or remove
 
 	listapath = MYLOCALPATH+r'\OneDrive\Python\cscart usergroup settings\cikklista.xlsx' 
 	lista=read_excel(listapath, usecols='A:A', dtype={'itemcode': str})['itemcode'].tolist()
@@ -79,6 +79,12 @@ if __name__ == '__main__':
 
 	add_list = list(set(lista) - set(current_products))
 	remove_list = list(set(current_products) - set(lista))
+	len_add = len(add_list)
+	len_remove = len(remove_list)
+
+	print(f"To add {len_add} product(s).")
+	print(f"To remove {len_remove} product(s).")
+
 
 	modify_product_usergroups(add_list, USERGROUP, 'add')
 	modify_product_usergroups(remove_list, USERGROUP, 'remove')
