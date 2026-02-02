@@ -144,7 +144,7 @@ def main():
 		try:
 			email_list = email.strip().split(',')
 			msg = MIMEMultipart()
-			msg['From'] = felhasznalo
+			msg['From'] = 'Ars Una Studio Kft.'
 			msg['To'] = ', '.join(email_list)
 			msg['Subject'] = f"Ars Una számlája érkezett"
 			msg['Reply-To'] ='web@arsuna.hu'
