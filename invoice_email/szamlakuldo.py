@@ -1,5 +1,6 @@
 # the additional Excel exporter are vibecoded with Gemini
 
+import re
 import os
 import smtplib, ssl
 from email.mime.multipart import MIMEMultipart
@@ -126,7 +127,7 @@ def main():
 					from [@EMAIL_OBJECTS] o
 					join oinv i on i.docentry=o.U_docentry and o.U_objtype=13
 					left join atc1 a on a.AbsEntry=i.AtcEntry and a.filename like concat('%',name,'%')
-					where o.U_status='TT' and i.series not in (551,539, 540, 553)
+					where o.U_status='TS' and i.series not in (551,539, 540, 553)
 					'''
 	kuldendok = readSQL(kuldendoQry)
 	updateQry = '''update [@email_objects] set u_status = :status, u_result = :result where code = :code'''
@@ -142,6 +143,36 @@ def main():
 		code = row['code']
 		excelfile = export_invoice_to_excel(docnum) if row['excel'] == 'Y' else None
 		try:
+			# If filename is not in the database, search the filesystem.
+			if pd.isna(filepath):
+				attachment_dir = os.path.join(KOZOSPATH, 'SBO', 'Attachments')
+				logging.info(f"Attachment for invoice {docnum} not found in DB, searching in {attachment_dir}")
+				found_path = None
+				try:
+					# The filename pattern should be like: 'Kimenő számla_DOCNUM_RANDOM.pdf'
+					# Using regex to handle variations in accented characters and random chars.
+					# Pattern: starts with 'Kimen. sz.mla_', has the docnum, and ends with '.pdf'.
+					pattern = re.compile(f"Kimen. sz.mla_{docnum}.*\\.pdf$", re.IGNORECASE)
+					matching_files = [
+						os.path.join(attachment_dir, f)
+						for f in os.listdir(attachment_dir)
+						if pattern.match(f)
+					]
+
+					if matching_files:
+						# Sort files by creation time, newest first, and take the latest one.
+						matching_files.sort(key=os.path.getctime, reverse=True)
+						found_path = matching_files[0]
+						logging.info(f"Found attachment on filesystem (newest): {found_path}")
+				except FileNotFoundError:
+					logging.warning(f"Attachment directory not found: {attachment_dir}")
+				filepath = found_path
+
+			if not filepath:
+				raise Exception(f"Attachment PDF for invoice {docnum} not found in database or on filesystem.")
+			if not os.path.exists(filepath):
+				raise Exception(f"Attachment file for invoice {docnum} does not exist at path: {filepath}")
+
 			email_list = email.strip().split(',')
 			msg = MIMEMultipart()
 			msg['From'] = 'Ars Una Studio Kft.'
