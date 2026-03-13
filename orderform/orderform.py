@@ -6,11 +6,11 @@ from auDAOlib import readPROD
 
 
 picPath = 'D:\\Arsuna\\TERMEKKEPEK\\ppp200\\'
-xlsPath = 'D:\\Arsuna\\AUrendeles2026.xlsx'
+xlsPath = 'D:\\Arsuna\\AUrendeles2026.xltx'
 
-arlista = 1
-akciodatum = r"'2026-03-05'"
-nemakciodatum = r"'2026-03-20'"
+arlista = 23
+akciodatum = r"'2026-03-20'"
+nemakciodatum = r"'2026-03-05'"
 
 
 """ 1 - nagyker
@@ -31,6 +31,7 @@ select * from
 min(dbo.listaar({arlista},{nemakciodatum}, i.itemcode)) nkar, 
 min(dbo.listaar({arlista},{akciodatum}, i.itemcode)) kedvar, 
 sum(be.OpenQty) beszerzes, coalesce(min(o.beerkezes), min(be.docduedate), '2026.12.31') bedatum, i.u_id, sum(i.onhand) keszlet, i.ItmsGrpCod
+, min(be.docduedate) bedate, max(s.sort) sort
 from ARSUNA_2020_PROD.dbo.oitm i 
 left join arsuna_2020_prod.dbo.oitw w on w.whscode=120 and w.itemcode=i.itemcode
 left join AUassist.dbo.orderform o on o.cikkszam=i.itemcode
@@ -38,23 +39,25 @@ left join
     (select pl.itemcode, pl.OpenQty, iif(ph.docduedate>getdate(),ph.DocDueDate,null) docduedate from ARSUNA_2020_PROD.dbo.por1 pl join ARSUNA_2020_PROD.dbo.opor ph on ph.DocEntry=pl.DocEntry and ph.DocStatus='O' where pl.LineStatus='O'
     union all
     select bl.itemcode, bl.OpenQty, iif(bh.vatdate>getdate(),bh.vatdate,null) docduedate from ARSUNA_2020_PROD.dbo.pch1 bl join ARSUNA_2020_PROD.dbo.opch bh on bh.DocEntry=bl.DocEntry and bh.DocStatus='O' where bl.LineStatus='O' and bh.isins='Y') be on be.ItemCode=i.ItemCode
+left join AUassist.dbo.orderformsort s on s.id=i.u_id
 where 1=1
 and i.ItmsGrpCod not in (103) -- borítékos lap
-and i.itemcode not in ('1004') -- gyártási költségek
-
+and i.itemcode not in ('1004', '95028422') -- gyártási költségek, LIDLnek kulacs
+and i.u_id not in (489)
 -- volt még több kiszedés, pl. egy rakat ean8, meg a kulacstetők és szilikonok, emlékeztetőül.
 
-group by i.ItemCode, i.CodeBars, i.ItemName, i.u_id,  i.ItmsGrpCod
-having ((sum(be.OpenQty)>0) or i.itemcode in (select id from auassist.dbo.temp))
+group by i.ItemCode, i.CodeBars, i.ItemName, i.u_id,  i.ItmsGrpCod, i.U_Termeknev
+having ((sum(be.OpenQty)>0) or i.itemcode in (select cikkszam from auassist.dbo.orderform))
 and (sum(i.onhand)=0 or i.itemcode in (select id from auassist.dbo.temp))
+
 ) ttt
-order by 1,2
+order by ttt.sort
 
 """
 
 
 dfStock = readPROD(sqlQuery)
-dfStock.sort_values(by=['u_id'])
+#dfStock.sort_values(by=['u_id'])
 
 if not isinstance(dfStock, pd.DataFrame):
 	print(dfStock)
