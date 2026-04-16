@@ -17,7 +17,7 @@ soap_body = '''
     <base:QueryCashRegisterFileRequest>
       <common:header>
         <common:requestId>RID_58044E67-9CB0-4833-9291-3F5CF39960AE</common:requestId>
-        <common:timestamp>2025-08-15T13:57:32.565Z</common:timestamp>
+        <common:timestamp>2026-04-16T12:30:00.000Z</common:timestamp>
         <common:requestVersion>1.0</common:requestVersion>
         <common:headerVersion>1.0</common:headerVersion>
       </common:header>
@@ -58,4 +58,4 @@ response = requests.post(
 )
 
 # Print the response
-print(response.status_code)
+print(response)
