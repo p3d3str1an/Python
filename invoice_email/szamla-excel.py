@@ -24,8 +24,8 @@ def export_invoice_to_excel_and_email(invoice_number, recipient_email):
         T1.Quantity [db], 
         T1.Price [nettó ár],
 		T1.LineTotal [összesen]
-    FROM OINV T0 
-    INNER JOIN INV1 T1 ON T0.DocEntry = T1.DocEntry
+    FROM oqut T0 
+    INNER JOIN qut1 T1 ON T0.DocEntry = T1.DocEntry
     WHERE T0.DocNum = '{invoice_number}'
     """
 
@@ -81,12 +81,12 @@ def export_invoice_to_excel_and_email(invoice_number, recipient_email):
         yag = yagmail.SMTP(user=ARSUNA_EMAIL_USER, password=ARSUNA_EMAIL_PASSWORD)
         subject = f"A {invoice_number} számla tételei"
         body = f"""<h3>Tisztelt Címzett!</h3><p>Köszönjük hogy minket választott!<br>Mellékelten küldjük a <strong>{invoice_number}</strong> számú számlájának tételeit excel formátumban.</p><p>Ez egy automata üzenet, kérem ha észrevétele van, a web@arsuna.hu címen jelezze!</p><p>Üdvözlettel,<br>Ars Una Studio<p>"""
-        yag.send(
-            to=recipient_email.strip().split(','),
-            subject=subject,
-            contents=body,
-            attachments=excel_filename
-        )
+ #       yag.send(
+ #           to=recipient_email.strip().split(','),
+ #           subject=subject,
+ #           contents=body,
+ #           attachments=excel_filename
+ #       )
         print(f"Email with invoice data sent to {recipient_email}")
     except Exception as e:
         print(f"Error sending email: {repr(e)}")
@@ -94,5 +94,5 @@ def export_invoice_to_excel_and_email(invoice_number, recipient_email):
 if __name__ == "__main__":
     # Example usage:
     # export_invoice_to_excel_and_email("2024000123", "test@example.com")
-    export_invoice_to_excel_and_email("5109584", "it@arsuna.hu,it+teszt@arsuna.hu")
+    export_invoice_to_excel_and_email("291", "it@arsuna.hu,it+teszt@arsuna.hu")
     pass
